@@ -1,0 +1,30 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-std=c23",
+      "-I./include",
+      "-c",
+      "-o",
+      "obj/gl.o",
+      "src/gl.c"
+    ],
+    "directory": "/home/sergey/dev/c/glfw-game",
+    "file": "/home/sergey/dev/c/glfw-game/src/gl.c",
+    "output": "/home/sergey/dev/c/glfw-game/obj/gl.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-std=c23",
+      "-I./include",
+      "-c",
+      "-o",
+      "obj/main.o",
+      "src/main.c"
+    ],
+    "directory": "/home/sergey/dev/c/glfw-game",
+    "file": "/home/sergey/dev/c/glfw-game/src/main.c",
+    "output": "/home/sergey/dev/c/glfw-game/obj/main.o"
+  }
+]
