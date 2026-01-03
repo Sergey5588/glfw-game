@@ -36,7 +36,7 @@ int main(void) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	
-	GLFWwindow* window = glfwCreateWindow(g_width, g_height, "Hello world", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(g_width, g_height, "glfw-game", NULL, NULL);
 
 	if(window == NULL) {
 		fprintf(stderr, "Failed to open window");
