@@ -19,7 +19,7 @@ void main() {
 	for(int i =0; i < 40; i++) {
 		z = mandelbrot(z,c);
 		if(length(z)>2.0f) {
-			FragColor = vec4(0,0,0,1);
+			FragColor = vec4(1,1,1,1);
 			return;
 		}
 			

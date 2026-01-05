@@ -1,8 +1,7 @@
-export CCACHE_DISABLE=1
 # tool macros
 CC := gcc  # FILL: the compiler
 CXX := g++ # FILL: the compiler
-CFLAGS := -std=gnu23 -I./include -lglfw -lm # FILL: compile flags
+CFLAGS := -std=c23 -I./include -lglfw -lm # FILL: compile flags
 CXXFLAGS := # FILL: compile flags
 DBGFLAGS := -g
 COBJFLAGS := $(CFLAGS) -c
@@ -27,6 +26,7 @@ OBJ := $(addprefix $(OBJ_PATH)/, $(addsuffix .o, $(notdir $(basename $(SRC)))))
 OBJ_DEBUG := $(addprefix $(DBG_PATH)/, $(addsuffix .o, $(notdir $(basename $(SRC)))))
 
 SHADERS := $(wildcard $(SHD_PATH)/*.frag) $(wildcard $(SHD_PATH)/*.vert)
+
 # clean files list
 DISTCLEAN_LIST := $(OBJ) \
                   $(OBJ_DEBUG)
@@ -38,16 +38,16 @@ CLEAN_LIST := $(TARGET) \
 default: makedir all
 
 # non-phony targets
-$(TARGET): $(SHADERS) $(OBJ)
+$(TARGET): $(OBJ) $(SHADERS) 
 	$(CC) -o $@ $(OBJ) $(CFLAGS)
 
-$(OBJ_PATH)/%.o: $(SRC_PATH)/%.c* $(SHADERS)
+$(OBJ_PATH)/%.o: $(SRC_PATH)/%.c*
 	$(CC) $(COBJFLAGS) -o $@ $<
 
-$(DBG_PATH)/%.o: $(SRC_PATH)/%.c* $(SHADERS)
+$(DBG_PATH)/%.o: $(SRC_PATH)/%.c*
 	$(CC) $(COBJFLAGS) $(DBGFLAGS) -o $@ $<
 
-$(TARGET_DEBUG): $(OBJ_DEBUG)
+$(TARGET_DEBUG): $(OBJ_DEBUG) $(SHADERS)
 	$(CC) $(CFLAGS) $(DBGFLAGS) $(OBJ_DEBUG) -o $@
 
 # phony rules

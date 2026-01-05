@@ -2,6 +2,9 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <stdbool.h>
+
+
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
@@ -27,7 +30,6 @@ int main(void) {
 		#embed "shader.frag"
 		, 0
 	};
-
 	const GLchar* vertSourcePtr = vertexShaderSource;
 	const GLchar* fragSourcePtr = fragmentShaderSource;
 
