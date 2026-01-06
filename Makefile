@@ -53,7 +53,7 @@ $(TARGET_DEBUG): $(OBJ_DEBUG)
 # phony rules
 .PHONY: run
 run: all
-	@./$(BIN_PATH)/$(TARGET_NAME)
+	@cd ./$(BIN_PATH) && ./$(TARGET_NAME)
 .PHONY: makedir
 makedir:
 	@mkdir -p $(BIN_PATH) $(OBJ_PATH) $(DBG_PATH)
