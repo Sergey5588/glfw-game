@@ -1,13 +1,13 @@
-#version 430 core
+#version 330 core
 in vec4 gl_FragCoord;
 out vec4 FragColor;
 
-in vec3 ourColor;
 in vec2 TexCoord;
+in mat4 transform;
 
-layout(location = 100) uniform vec2 u_resolution;
+uniform vec2 u_resolution;
 
-layout(location = 101) uniform vec2 u_mouse;
+uniform vec2 u_mouse;
 
 
 uniform sampler2D ourTexture;

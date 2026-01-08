@@ -3,10 +3,12 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <stdbool.h>
-
+#include "linmath.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+
+#define rad(n) n*M_PI/180.0
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 GLuint compile_shader(const GLchar* source, GLenum type);
@@ -14,11 +16,47 @@ GLuint compile_shader(const GLchar* source, GLenum type);
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
                             GLsizei length, const char* message, const void* userParam);
 float vertices[] = {
-    // positions          // colors           // texture coords
-     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 unsigned int indices[] = {  // note that we start from 0!
     0, 1, 3,   // first triangle
@@ -69,14 +107,13 @@ int main(void) {
 		glDebugMessageCallback(glDebugOutput, nullptr);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	}
-
+	//OpenGL setup
 	glViewport(0,0,800,800);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+	glEnable(GL_DEPTH_TEST);  
 
 	GLuint vertexShader, fragmentShader;
 	vertexShader = compile_shader(vertexShaderSource, GL_VERTEX_SHADER);
-	
 	fragmentShader = compile_shader(fragmentShaderSource, GL_FRAGMENT_SHADER);
 
 	GLuint shaderProgram;
@@ -100,14 +137,14 @@ int main(void) {
 
 
 	//pos
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0); 
 	//color 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3* sizeof(float)));
-	glEnableVertexAttribArray(1);
+//	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3* sizeof(float)));
+//	glEnableVertexAttribArray(1);
 	//texture
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);  
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);  
 
 	GLuint texture;
 	glGenTextures(1, &texture);  
@@ -118,34 +155,81 @@ int main(void) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
-	int width, height, nrChannels;
-	unsigned char *img_cat = stbi_load("cat.png", &width, &height, &nrChannels, 0);
+	int img_width, img_height, nrChannels;
+	unsigned char *img_cat = stbi_load("cat.png", &img_width, &img_height, &nrChannels, 0);
 	if(img_cat) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img_cat);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, img_cat);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	} else {
 		fprintf(stderr, "failed to open cat.png");
 	}
 	stbi_image_free(img_cat);
-
+	
+	mat4x4 model = {
+		{1.0f, 0.0f,0.0f,0.0f},
+		{0.0f, 1.0f,0.0f,0.0f},
+		{0.0f, 0.0f,1.0f,0.0f},
+		{0.0f, 0.0f,0.0f,1.0f},
+	};
+	//scaling -> rotation ->translation
+	
+//	mat4x4_rotate(model,model, 0.0,0.0,1.0, M_PI/2);
+	
+	mat4x4 view = {
+		{1.0f, 0.0f,0.0f,0.0f},
+		{0.0f, 1.0f,0.0f,0.0f},
+		{0.0f, 0.0f,1.0f,0.0f},
+		{0.0f, 0.0f,0.0f,1.0f},
+	};
+	mat4x4_translate(view, 0,0,-3.0f);
+	mat4x4 proj = {0};
+	mat4x4_perspective(proj, rad(45.0f), (float)g_width/(float)g_height, 0.1f, 100.0f);
+	vec3 cubePositions[] = {
+		{ 0.0f,  0.0f,  0.0f},
+		{ 2.0f,  5.0f, -15.0f}, 
+		{-1.5f, -2.2f, -2.5f},  
+		{-3.8f, -2.0f, -12.3f},  
+		{ 2.4f, -0.4f, -3.5f},  
+		{-1.7f,  3.0f, -7.5f},  
+		{ 1.3f, -2.0f, -2.5f},  
+		{ 1.5f,  2.0f, -2.5f}, 
+		{ 1.5f,  0.2f, -1.5f}, 
+		{-1.3f,  1.0f, -1.5f}  
+	};
 	while(!glfwWindowShouldClose(window)) {
 		//input
 		processInput(window);
 		//render
+//		mat4x4_rotate_Y(model, model, 0.05f);
 
 		glClearColor(0.2f,0.3f,0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(shaderProgram);
+//		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &model[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, &view[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, &proj[0][0]);
 
-		glUniform2f(100, (float)g_width, (float)g_height);
-		glUniform2f(101, (float)m_x, (float)m_y);
+		glUniform2f(glGetUniformLocation(shaderProgram, "u_resolution"), (float)g_width, (float)g_height);
+		glUniform2f(glGetUniformLocation(shaderProgram, "u_mouse"), (float)m_x, (float)m_y);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		
+//		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		for(int i = 0; i < 10; i++) {
+			mat4x4 test_model = {
+				{1.0f, 0.0f,0.0f,0.0f},
+				{0.0f, 1.0f,0.0f,0.0f},
+				{0.0f, 0.0f,1.0f,0.0f},
+				{0.0f, 0.0f,0.0f,1.0f},
+			};
+			mat4x4_translate(test_model, cubePositions[i][0],cubePositions[i][1],cubePositions[i][2]);
+			float ang = 20.0f * i;
+			mat4x4_rotate(test_model, test_model, 1.0f, 0.3f, 0.5f, rad(ang));
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &test_model[0][0]);
+		}
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		//check and call events
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -168,7 +252,7 @@ void processInput(GLFWwindow *window) {
 }
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
                             GLsizei length, const char* message, const void* userParam) {
-	return;
+//	return;
     // Filter out non-essential notifications
     if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) return;
     // Output the debug message
