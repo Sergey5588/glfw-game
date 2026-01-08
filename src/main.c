@@ -1,3 +1,4 @@
+#include <complex.h>
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <stdio.h>
@@ -8,6 +9,7 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
+GLuint compile_shader(const GLchar* source, GLenum type);
 
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
                             GLsizei length, const char* message, const void* userParam);
@@ -22,6 +24,7 @@ unsigned int indices[] = {  // note that we start from 0!
     0, 1, 3,   // first triangle
     1, 2, 3    // second triangle
 };
+
 int g_width = 800;
 int g_height = 600;
 
@@ -36,7 +39,6 @@ int main(void) {
 		#embed "shader.frag"
 		, 0
 	};
-
 	const GLchar* vertSourcePtr = vertexShaderSource;
 	const GLchar* fragSourcePtr = fragmentShaderSource;
 
@@ -67,57 +69,23 @@ int main(void) {
 		glDebugMessageCallback(glDebugOutput, nullptr);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	}
+
 	glViewport(0,0,800,800);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 
-	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	GLuint vertexShader, fragmentShader;
+	vertexShader = compile_shader(vertexShaderSource, GL_VERTEX_SHADER);
 	
-	glShaderSource(vertexShader, 1, &vertSourcePtr, NULL);
-	glCompileShader(vertexShader);
+	fragmentShader = compile_shader(fragmentShaderSource, GL_FRAGMENT_SHADER);
 
-	GLint success;
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		GLchar infoLog[512];
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		fprintf(stderr, "Shader compilation error: %s \n", infoLog);
-	}
-	unsigned int fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragSourcePtr, NULL);
-	glCompileShader(fragmentShader);
-
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		GLchar infoLog[512];
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		fprintf(stderr, "Shader compilation error: %s \n", infoLog);
-	}
-	unsigned int shaderProgram;
+	GLuint shaderProgram;
 	shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
 
-//	unsigned int VBO;
-//	glGenBuffers(1, &VBO);  
-//	glBindBuffer(GL_ARRAY_BUFFER, VBO); 
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-//	
-//	unsigned int VAO;
-//	glGenVertexArrays(1, &VAO);  
-//	glBindVertexArray(VAO);
-//	// 2. copy our vertices array in a buffer for OpenGL to use
-//	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-//
-//	unsigned int EBO;
-//	glGenBuffers(1, &EBO);
-//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-//	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-	unsigned int VBO, VAO, EBO;
+	GLuint VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -141,7 +109,7 @@ int main(void) {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);  
 
-	unsigned int texture;
+	GLuint texture;
 	glGenTextures(1, &texture);  
 	glBindTexture(GL_TEXTURE_2D, texture);
 	
@@ -206,4 +174,19 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum 
     // Output the debug message
 	printf("[OpenGL] %s\n", message);
     // You can expand this to log source, type, and severity[citation:1]
+}
+GLuint compile_shader(const GLchar* source, GLenum type) {
+	GLuint shader = glCreateShader(type);
+	
+	glShaderSource(shader, 1, &source, NULL);
+	glCompileShader(shader);
+
+	GLint success;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+	if (!success) {
+		GLchar infoLog[512];
+		glGetShaderInfoLog(shader, 512, NULL, infoLog);
+		fprintf(stderr, "Shader compilation error: %s \n", infoLog);
+	}
+	return shader;
 }
