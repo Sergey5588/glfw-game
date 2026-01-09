@@ -221,6 +221,8 @@ int main(void) {
 		vec3_add(pPf, cameraPos, cameraFront);
 		mat4x4_look_at(view,cameraPos, pPf,cameraUp);
 
+		mat4x4_perspective(proj, rad(45.0f), (float)g_width/(float)g_height, 0.1f, 100.0f);
+
 		glClearColor(0.2f,0.3f,0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -262,6 +264,8 @@ int main(void) {
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	g_width = width;
+	g_height = height;
 	glViewport(0,0,width,height);
 	
 }
