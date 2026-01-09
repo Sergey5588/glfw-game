@@ -5,8 +5,8 @@ out vec4 FragColor;
 in vec2 TexCoord;
 in mat4 transform;
 
-uniform vec2 u_resolution;
 
+uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 
 

@@ -9,6 +9,7 @@
 
 
 #define rad(n) n*M_PI/180.0
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 GLuint compile_shader(const GLchar* source, GLenum type);
@@ -67,6 +68,18 @@ int g_width = 800;
 int g_height = 600;
 
 double m_x, m_y;
+
+vec3 cameraPos   = {0.0f, 0.0f,  3.0f};
+vec3 cameraFront = {0.0f, 0.0f, -1.0f};
+vec3 cameraUp    = {0.0f, 1.0f,  0.0f};
+
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
+
+float lastX = 400, lastY = 300;
+bool firstMouse = true;
+float yaw = -90.0f;
+float pitch = 0.0f;
 int main(void) {
 
 	const char vertexShaderSource[] = {
@@ -79,13 +92,11 @@ int main(void) {
 	};
 	const GLchar* vertSourcePtr = vertexShaderSource;
 	const GLchar* fragSourcePtr = fragmentShaderSource;
-
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-
 	GLFWwindow* window = glfwCreateWindow(g_width, g_height, "glfw-game", NULL, NULL);
 	if(window == NULL) {
 		fprintf(stderr, "Failed to open window");
@@ -93,7 +104,7 @@ int main(void) {
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
-
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
 
 	if(!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
 		fprintf(stderr, "Failed to init GLAD");
@@ -110,6 +121,7 @@ int main(void) {
 	//OpenGL setup
 	glViewport(0,0,800,800);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);  
 	glEnable(GL_DEPTH_TEST);  
 
 	GLuint vertexShader, fragmentShader;
@@ -200,7 +212,14 @@ int main(void) {
 		//input
 		processInput(window);
 		//render
+
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 //		mat4x4_rotate_Y(model, model, 0.05f);
+		vec3 pPf = {0};
+		vec3_add(pPf, cameraPos, cameraFront);
+		mat4x4_look_at(view,cameraPos, pPf,cameraUp);
 
 		glClearColor(0.2f,0.3f,0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -228,8 +247,9 @@ int main(void) {
 			float ang = 20.0f * i;
 			mat4x4_rotate(test_model, test_model, 1.0f, 0.3f, 0.5f, rad(ang));
 			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &test_model[0][0]);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+//		glDrawArrays(GL_TRIANGLES, 0, 36);
 		//check and call events
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -246,9 +266,24 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	
 }
 void processInput(GLFWwindow *window) {
+	const float cameraSpeed = 5.0f*deltaTime; // adjust accordingly
 	glfwGetCursorPos(window, &m_x, &m_y);
+	vec3 mul = {0};
+	vec3_scale(mul, cameraFront, cameraSpeed);
+	vec3 cross_mul = {0};
+	vec3_mul_cross(cross_mul, cameraFront, cameraUp);
+	vec3_norm(cross_mul, cross_mul);
+	vec3_scale(cross_mul, cross_mul, cameraSpeed);
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		vec3_add(cameraPos, cameraPos, mul); 
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		vec3_sub(cameraPos, cameraPos, mul); 
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		vec3_sub(cameraPos, cameraPos, cross_mul);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		vec3_add(cameraPos, cameraPos, cross_mul);
 }
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
                             GLsizei length, const char* message, const void* userParam) {
@@ -273,4 +308,39 @@ GLuint compile_shader(const GLchar* source, GLenum type) {
 		fprintf(stderr, "Shader compilation error: %s \n", infoLog);
 	}
 	return shader;
+}
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+	m_x = xpos;
+	m_y = ypos;
+
+	if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+  
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; 
+    lastX = xpos;
+    lastY = ypos;
+
+    float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw   += xoffset;
+    pitch += yoffset;
+
+    if(pitch > 89.0f)
+        pitch = 89.0f;
+    if(pitch < -89.0f)
+        pitch = -89.0f;
+
+    vec3 direction = {0};
+    direction[0] = cos(rad(yaw)) * cos(rad(pitch));
+    direction[1] = sin(rad(pitch));
+    direction[2] = sin(rad(yaw)) * cos(rad(pitch));
+
+	vec3_norm(cameraFront, direction);
 }
